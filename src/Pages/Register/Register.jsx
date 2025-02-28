@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
 import { TextField, Button, MenuItem, IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import Logo from '../../Shared/Logo/Logo';
+import useAxiosPublic from '../../Hooks/useAxiosPublic';
+import Swal from 'sweetalert2';
+import 'sweetalert2/src/sweetalert2.scss'
+import useAuth from '../../Hooks/useAuth';
 const Register = () => {
+  const {createUser,signOut} = useAuth()
     const [formData, setFormData] = useState({
         name: "",
-        pin: "",
-        mobile: "",
+        pin: '',
+        mobile: '',
         email: "",
         accountType: "user",
         nid: "",
         amount: 40,
         verification: false,
       });
+      const axiosPublic = useAxiosPublic();
+      const navigate = useNavigate()
       const [showPin, setShowPin] = useState(false);
     
       const handleChange = (e) => {
@@ -29,13 +36,60 @@ const Register = () => {
         setShowPin(!showPin);
       };
     
-      const isPinValid = formData.pin.length === 5 && /^[0-9]+$/.test(formData.pin);
+      const isPinValid = formData.pin.length === 6 && /^[0-9]+$/.test(formData.pin);
       const isNidValid = formData.nid.length >= 10 && formData.nid.length <= 17 && /^[0-9]+$/.test(formData.nid);
       const isFormValid = formData.name && formData.mobile && formData.email && isPinValid && isNidValid;
 
     
-      const handleSubmit = () => {
+      const handleSubmit = async () => {
         console.log("Registration Data Submitted:", formData);
+        try {
+          // Send form data to the backend
+          const res = await axiosPublic.post('/users', formData);
+      
+          if (res.data.insertedId) {
+            try {
+              // Create user with Firebase authentication
+              const result = await createUser(formData.email, formData.pin);
+      
+              if (result?.user) {
+                // Show success message
+                Swal.fire({
+                  position: "center",
+                  icon: "success",
+                  title: "Registered Successfully",
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+                signOut()
+                // Navigate to home page
+                navigate('/');
+              } else {
+                throw new Error("User creation failed in Firebase.");
+              }
+            } catch (firebaseError) {
+              Swal.fire({
+                icon: "error",
+                title: "Firebase Registration Failed",
+                text: firebaseError.message || "Something went wrong!",
+              });
+            }
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Registration Failed",
+              text: res.data.message || "Something went wrong!",
+            });
+          }
+        } catch (axiosError) {
+          Swal.fire({
+            icon: "error",
+            title: "Server Request Failed",
+            text: axiosError.message || "Failed to register user.",
+          });
+        }
+      
+
       };
     return (
         <div>
@@ -49,7 +103,7 @@ const Register = () => {
       <TextField fullWidth label="Email" variant="standard" name="email" value={formData.email} onChange={handleChange} required style={{ marginBottom: "10px" }} />
       <TextField
         fullWidth
-        label="PIN (5-digit)"
+        label="PIN (6-digit)"
         variant="standard"
         name="pin"
         type={showPin ? "text" : "password"}
@@ -57,7 +111,7 @@ const Register = () => {
         onChange={handleChange}
         required
         error={!isPinValid && formData.pin.length > 0}
-        helperText={!isPinValid && formData.pin.length > 0 ? "PIN must be exactly 5 digits" : ""}
+        helperText={!isPinValid && formData.pin.length > 0 ? "PIN must be exactly 6 digits" : ""}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
