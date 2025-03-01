@@ -100,7 +100,7 @@ const Register = () => {
             <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
       <TextField fullWidth label="Name" variant="standard" name="name" value={formData.name} onChange={handleChange} required style={{ marginBottom: "10px" }} />
       <TextField fullWidth label="Mobile Number" variant="standard" name="mobile" value={formData.mobile} onChange={handleChange} required style={{ marginBottom: "10px" }} />
-      <TextField fullWidth label="Email" variant="standard" name="email" value={formData.email} onChange={handleChange} required style={{ marginBottom: "10px" }} />
+      <TextField fullWidth label="Email" variant="standard" name="email"  value={formData.email.toLowerCase()} onChange={handleChange} required style={{ marginBottom: "10px" }} />
       <TextField
         fullWidth
         label="PIN (6-digit)"

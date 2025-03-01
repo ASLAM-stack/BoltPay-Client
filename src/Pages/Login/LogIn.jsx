@@ -42,7 +42,7 @@ const LogIn = () => {
           showConfirmButton: false,
           timer: 1500
         });
-        navigate('/');
+        navigate('/dashboard/usedashboard');
       })
       .catch((error) => {
         console.log(error);
@@ -64,7 +64,7 @@ const LogIn = () => {
           label="Email"
           variant="standard"
           name="email"
-          value={formData.email}
+          value={formData.email.toLowerCase()}
           onChange={handleChange}
           required
           style={{ marginBottom: "10px" }}
